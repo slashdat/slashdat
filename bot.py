@@ -228,6 +228,14 @@ async def order(
     tip: Optional[float] = None,
 ) -> None:
     await interaction.response.defer(ephemeral=True)
+    if not os.environ.get("STRIPE_SECRET_KEY"):
+        await interaction.followup.send(
+            "Payments aren't configured on this bot yet. "
+            "Use `/price` to see what a cart would cost. "
+            "The owner can enable `/order` by adding `STRIPE_SECRET_KEY` in Railway.",
+            ephemeral=True,
+        )
+        return
     if bot.order_flow is None:
         await interaction.followup.send("Order flow not initialised yet. Try again in a moment.", ephemeral=True)
         return
@@ -241,7 +249,7 @@ def main() -> None:
     if not os.environ.get("YONDER_API_KEY"):
         raise SystemExit("YONDER_API_KEY is not set. Copy .env.example to .env and fill it in.")
     if not os.environ.get("STRIPE_SECRET_KEY"):
-        raise SystemExit("STRIPE_SECRET_KEY is not set. Copy .env.example to .env and fill it in.")
+        log.warning("STRIPE_SECRET_KEY is not set — /order will be disabled. Set it later to enable paid orders.")
     bot.run(DISCORD_TOKEN)
 
 
